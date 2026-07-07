@@ -142,12 +142,25 @@ static camera_config_t camera_config = {
     .ledc_channel = LEDC_CHANNEL_0,
 
     .pixel_format = PIXFORMAT_JPEG,//YUV422,GRAYSCALE,RGB565,JPEG
-    .frame_size = FRAMESIZE_UXGA,//QQVGA-UXGA, For ESP32, do not use sizes above QVGA when not JPEG. The performance of the ESP32-S series has improved a lot, but JPEG mode always gives better frame rates.
+    .frame_size = FRAMESIZE_UXGA,//FRAMESIZE_* or custom JPEG frame buffer size in bytes. For ESP32, do not use sizes above QVGA when not JPEG. The performance of the ESP32-S series has improved a lot, but JPEG mode always gives better frame rates.
 
     .jpeg_quality = 12, //0-63, for OV series camera sensors, lower number means higher quality
     .fb_count = 1, //When jpeg mode is used, if fb_count more than one, the driver will work in continuous mode.
     .grab_mode = CAMERA_GRAB_WHEN_EMPTY//CAMERA_GRAB_LATEST. Sets when buffers should be filled
 };
+
+/*
+ * In JPEG mode, frame_size values greater than or equal to
+ * CAMERA_FRAME_SIZE_CUSTOM_BYTES_MIN are interpreted as the frame buffer size
+ * in bytes, for example:
+ *
+ *     .frame_size = 128 * 1024,
+ *
+ * Custom byte sizes only affect JPEG frame buffer allocation. The sensor is
+ * initialized at its maximum supported frame size; applications can call
+ * sensor->set_framesize(sensor, FRAMESIZE_*) after esp_camera_init() to select
+ * a different output resolution.
+ */
 
 esp_err_t camera_init(){
     //power up the camera if PWDN pin is defined
