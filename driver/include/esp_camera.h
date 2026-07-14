@@ -39,7 +39,8 @@
         .frame_size     = FRAMESIZE_SVGA,
         .jpeg_quality   = 10,
         .fb_count       = 2,
-        .grab_mode      = CAMERA_GRAB_WHEN_EMPTY
+        .grab_mode      = CAMERA_GRAB_WHEN_EMPTY,
+        .jpeg_buffer_size = 0
     };
 
     esp_err_t camera_example_init(){
@@ -81,8 +82,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define CAMERA_FRAME_SIZE_CUSTOM_BYTES_MIN 1024U
 
 /**
  * @brief Configuration structure for camera initialization
@@ -146,10 +145,7 @@ typedef struct {
     ledc_channel_t ledc_channel;    /*!< LEDC channel to be used for generating XCLK  */
 
     pixformat_t pixel_format;       /*!< Format of the pixel data: PIXFORMAT_ + YUV422|GRAYSCALE|RGB565|JPEG  */
-    uint32_t frame_size;            /*!< FRAMESIZE_* output image size when below CAMERA_FRAME_SIZE_CUSTOM_BYTES_MIN.
-                                         In JPEG mode, values greater than or equal to CAMERA_FRAME_SIZE_CUSTOM_BYTES_MIN
-                                         are used as the frame buffer size in bytes and initialize the sensor at its
-                                         maximum supported frame size. */
+    framesize_t frame_size;         /*!< Size of the output image: FRAMESIZE_ + QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA  */
 
     int jpeg_quality;               /*!< Quality of JPEG output. 0-63 lower means higher quality  */
     size_t fb_count;                /*!< Number of frame buffers to be allocated. If more than one, then each frame will be acquired (double speed)  */
@@ -160,6 +156,7 @@ typedef struct {
 #endif
 
     int sccb_i2c_port;              /*!< If pin_sccb_sda is -1, use the already configured I2C bus by number */
+    size_t jpeg_buffer_size;        /*!< Size of the JPEG frame buffer in bytes. Set to 0 to use the default size */
 } camera_config_t;
 
 /**
@@ -285,3 +282,4 @@ bool esp_camera_get_psram_mode(void);
 #endif
 
 #include "img_converters.h"
+

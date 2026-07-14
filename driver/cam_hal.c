@@ -564,7 +564,7 @@ err:
     return ESP_FAIL;
 }
 
-esp_err_t cam_config(const camera_config_t *config, framesize_t frame_size, size_t frame_buffer_size, uint16_t sensor_pid)
+esp_err_t cam_config(const camera_config_t *config, framesize_t frame_size, uint16_t sensor_pid)
 {
     CAM_CHECK(NULL != config, "config pointer is invalid", ESP_ERR_INVALID_ARG);
     esp_err_t ret = ESP_OK;
@@ -584,8 +584,8 @@ esp_err_t cam_config(const camera_config_t *config, framesize_t frame_size, size
     cam_obj->height = resolution[frame_size].height;
 
     if(cam_obj->jpeg_mode){
-        if (frame_buffer_size > 0) {
-            cam_obj->recv_size = frame_buffer_size;
+        if (config->jpeg_buffer_size > 0) {
+            cam_obj->recv_size = config->jpeg_buffer_size;
         } else {
 #ifdef CONFIG_CAMERA_JPEG_MODE_FRAME_SIZE_AUTO
             cam_obj->recv_size = cam_obj->width * cam_obj->height / 5;

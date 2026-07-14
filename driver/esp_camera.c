@@ -296,11 +296,6 @@ static pixformat_t get_output_data_format(camera_conv_mode_t conv_mode)
 }
 #endif
 
-static bool is_custom_frame_buffer_size(uint32_t frame_size)
-{
-    return frame_size >= CAMERA_FRAME_SIZE_CUSTOM_BYTES_MIN;
-}
-
 esp_err_t esp_camera_init(const camera_config_t *config)
 {
     esp_err_t err;
@@ -318,10 +313,8 @@ esp_err_t esp_camera_init(const camera_config_t *config)
         goto fail;
     }
 
+    framesize_t frame_size = (framesize_t) config->frame_size;
     pixformat_t pix_format = (pixformat_t) config->pixel_format;
-    bool custom_frame_buffer_size = is_custom_frame_buffer_size(config->frame_size);
-    size_t frame_buffer_size = custom_frame_buffer_size ? config->frame_size : 0;
-    framesize_t frame_size = custom_frame_buffer_size ? camera_sensor[camera_model].max_size : (framesize_t) config->frame_size;
 
     if (PIXFORMAT_JPEG == pix_format && (!camera_sensor[camera_model].support_jpeg)) {
         ESP_LOGE(TAG, "JPEG format is not supported on this sensor");
@@ -329,18 +322,12 @@ esp_err_t esp_camera_init(const camera_config_t *config)
         goto fail;
     }
 
-    if (custom_frame_buffer_size && PIXFORMAT_JPEG != pix_format) {
-        ESP_LOGE(TAG, "Custom frame buffer size is only supported in JPEG mode");
-        err = ESP_ERR_INVALID_ARG;
-        goto fail;
-    }
-
-    if (!custom_frame_buffer_size && frame_size > camera_sensor[camera_model].max_size) {
+    if (frame_size > camera_sensor[camera_model].max_size) {
         ESP_LOGW(TAG, "The frame size exceeds the maximum for this sensor, it will be forced to the maximum possible value");
         frame_size = camera_sensor[camera_model].max_size;
     }
 
-    err = cam_config(config, frame_size, frame_buffer_size, s_state->sensor.id.PID);
+    err = cam_config(config, frame_size, s_state->sensor.id.PID);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Camera config failed with error 0x%x", err);
         goto fail;
